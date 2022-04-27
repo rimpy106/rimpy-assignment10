@@ -1,0 +1,62 @@
+package com.example.rimpyassignment10.web;
+
+import java.net.URI;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import com.example.rimpyassignment10.config.SpoonacularConfiguration;
+import com.example.rimpyassignment10.dto.DayResponse;
+import com.example.rimpyassignment10.dto.WeekResponse;
+
+@RestController
+public class SpoonacularController {
+
+	@Autowired
+	private SpoonacularConfiguration config;
+
+	@GetMapping("/mealplanner/week")
+	public ResponseEntity<WeekResponse> getWeekMeals(String numCalories, String diet, String exclusions) {
+		return getSpoonacularAPIWeekResponse("1000", "vegetarian", "shellfish");
+	}
+
+	@GetMapping("/mealplanner/day")
+	public ResponseEntity<DayResponse> getDayMeals(String numCalories, String diet, String exclusions) {
+		return getSpoonacularAPIDayResponse("1000", "vegan", " ");
+	}
+
+	public ResponseEntity<WeekResponse> getSpoonacularAPIWeekResponse(String numCalories, String diet, String exclusions) {
+		URI uri = UriComponentsBuilder.fromHttpUrl(config.getMealPlanUrl())
+				                      .queryParam("timeFrame", "week")
+				                      .queryParam("apiKey", "7a50a47ed75a4f5e9606e610628eb64f")
+				                      .queryParam("targetCalories", Integer.parseInt(numCalories)).queryParam("diet", diet)
+				                      .queryParam("exclude", exclusions).build().toUri();
+		RestTemplate rt = new RestTemplate();
+		ResponseEntity<WeekResponse> weekResponse = rt.getForEntity(uri, WeekResponse.class);
+
+		System.out.println(weekResponse.getBody());
+		return weekResponse;
+
+	}
+
+	public ResponseEntity<DayResponse> getSpoonacularAPIDayResponse(String numCalories, String diet, String exclusions) {
+		URI uri = UriComponentsBuilder.fromHttpUrl(config.getMealPlanUrl())
+				                      .queryParam("timeFrame", "day")
+				                      .queryParam("apiKey", "7a50a47ed75a4f5e9606e610628eb64f")
+				                      .queryParam("targetCalories", numCalories)
+				                      .queryParam("diet", diet)
+				                      .queryParam("exclude", exclusions).build().toUri();
+		
+		RestTemplate rt1 = new RestTemplate();
+		ResponseEntity<DayResponse> dayResponse = rt1.getForEntity(uri, DayResponse.class);
+
+		System.out.println(dayResponse.getBody());
+		return dayResponse;
+
+	}
+
+}
