@@ -20,58 +20,49 @@ public class SpoonacularController {
 
 	@Autowired
 	private SpoonacularConfiguration config;
-
-	/*
-	 * @GetMapping("/mealplanner/week") 
-	 * public ResponseEntity<WeekResponse> getWeekMeals(Optional<String> numCalories, Optional<String> diet,
-	 * Optional<String> exclusions) { String numCalValue = numCalories.isPresent() ?
-	 * numCalories.get() : null; String dietValue = diet.isPresent() ? diet.get() :
-	 * null; String exclusionsValue = exclusions.isPresent() ? exclusions.get() :
-	 * null; return getSpoonacularAPIWeekResponse(numCalValue, dietValue,
-	 * exclusionsValue); }
-	 */
 	
 	@GetMapping("/mealplanner/week")
-	public ResponseEntity<WeekResponse> getWeekMeals(@RequestParam(required=false) Integer targetCalories, 
-			@RequestParam(required=false) String diet,
-			@RequestParam(required=false) String exclude) {
+	public ResponseEntity<WeekResponse> getWeekMeals(Optional<Integer> numCalories, Optional<String> diet,
+			Optional<String> exclusions) {
 		
-		return getSpoonacularAPIWeekResponse(targetCalories, diet, exclude);
-	}
-
-	@GetMapping("/mealplanner/day")
-	public ResponseEntity<DayResponse> getDayMeals() {
-		return getSpoonacularAPIDayResponse();
-	}
-
-	public ResponseEntity<WeekResponse> getSpoonacularAPIWeekResponse(Integer targetCalories, String diet,
-			String exclude) {
-		System.out.println(targetCalories + "-" + diet + "-" + exclude);
+		RestTemplate rt = new RestTemplate();
+		
 		URI uri = UriComponentsBuilder.fromHttpUrl(config.getMealPlanUrl())
 				.queryParam("timeFrame", "week")
 				.queryParam("apiKey", "7a50a47ed75a4f5e9606e610628eb64f")
-				.queryParam("targetCalories", targetCalories)
-				.queryParam("diet", diet)
-				.queryParam("exclude", exclude).build().toUri();
+				.queryParamIfPresent("targetCalories", numCalories) 
+				.queryParamIfPresent("diet", diet)
+				.queryParamIfPresent("exclude", exclusions).build().toUri();
 
-		RestTemplate rt = new RestTemplate();
+		
 		ResponseEntity<WeekResponse> weekResponse = rt.getForEntity(uri, WeekResponse.class);
 
 		System.out.println(weekResponse.getBody());
 		return weekResponse;
+		
 
 	}
 
-	public ResponseEntity<DayResponse> getSpoonacularAPIDayResponse() {
-		URI uri = UriComponentsBuilder.fromHttpUrl(config.getMealPlanUrl()).queryParam("timeFrame", "day")
-				.queryParam("apiKey", "7a50a47ed75a4f5e9606e610628eb64f").build().toUri();
-
+	@GetMapping("/mealplanner/day")
+	public ResponseEntity<DayResponse> getDayMeals(Optional<Integer> numCalories, Optional<String> diet,
+			Optional<String> exclusions) {
+		
 		RestTemplate rt1 = new RestTemplate();
+		
+		URI uri = UriComponentsBuilder.fromHttpUrl(config.getMealPlanUrl())
+				                      .queryParam("timeFrame", "day")
+				                      .queryParam("apiKey", "7a50a47ed75a4f5e9606e610628eb64f")
+				                  	  .queryParamIfPresent("targetCalories", numCalories) 
+				    				  .queryParamIfPresent("diet", diet)
+				    				  .queryParamIfPresent("exclude", exclusions).build().toUri();
+
+		
 		ResponseEntity<DayResponse> dayResponse = rt1.getForEntity(uri, DayResponse.class);
 
-		System.out.println(dayResponse.getBody());
+		//System.out.println(dayResponse.getBody());
 		return dayResponse;
-
 	}
+
+
 
 }
